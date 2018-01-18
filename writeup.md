@@ -25,7 +25,7 @@ My pipeline consisted of one function 'draw_lane_lines(img)' with the parameter 
 
 The function 'draw_lane_lines()' consists of 10 functional steps, I'd like to describe each of steps  as below.
 
-1. In the first step, it converts image into gray-scale.
+** In the first step, it converts image into gray-scale.
 
     ##### Step 1. Convert to gray-scale
     # from now on, I wiil use only gray scal image
@@ -34,7 +34,7 @@ The function 'draw_lane_lines()' consists of 10 functional steps, I'd like to de
 ![result1](./test_images_output/0_gray_img.jpg)
 
 
-2. In the second, I've adjusted Gaussian smoothing with filter size '5'. 
+** In the second, I've adjusted Gaussian smoothing with filter size '5'. 
 
     ##### Step 2. Gaussian smoothing
     temp_img = gaussian_blur(gray_img, 5)
@@ -42,14 +42,14 @@ The function 'draw_lane_lines()' consists of 10 functional steps, I'd like to de
 ![result1](./test_images_output/1_gaussian_blur.jpg)
 
 
-3. In the third, canny edge filter was processed with thresholds (30,100)
+** In the third, canny edge filter was processed with thresholds (30,100)
     
     ##### Step 3. Canny Edge
     temp_img = canny(temp_img, 30, 100)
 
 ![result1](./test_images_output/2_canny_edge.jpg)
 
-4. In the fourth step, I've tuned ROI area to fit our inputs. 
+** In the fourth step, I've tuned ROI area to fit our inputs. 
 
     ##### Step 4. ROI
     vertices = np.array([[(100,img_shape[0]),\
@@ -61,7 +61,7 @@ The function 'draw_lane_lines()' consists of 10 functional steps, I'd like to de
 ![result1](./test_images_output/3_roi.jpg)
 
 
-5. Within the ROI area, the hogh transform was conducted. I've write down my own code to deal with data fine, instead of using pre-defined helper function (hough_lines()).  Until this step, it is quite same as proposed one in the lecture. 
+** Within the ROI area, the hogh transform was conducted. I've write down my own code to deal with data fine, instead of using pre-defined helper function (hough_lines()).  Until this step, it is quite same as proposed one in the lecture. 
     
     ##### Step 5. Hough Transform
     rho =  1 # distance resolution in pixels of the Hough grid
@@ -74,50 +74,52 @@ The function 'draw_lane_lines()' consists of 10 functional steps, I'd like to de
     lines = cv2.HoughLinesP(mask_img, rho, theta, threshold, np.array([]), minLineLength=min_line_len, maxLineGap=max_line_gap)
     
 
-6. I've calculated 'Rho' for each line, so that I can handle by positive/negative slopes seperately. 
+** I've calculated 'slope' for each line, so that I can handle by positive/negative slopes seperately. 
 
-    ##### Step 6. Calculate 'Rho'(slope) of lines 
+    ##### Step 6. Calculate 'slope'(slope) of lines 
     lines_squeeze = np.squeeze(lines)
-    # calculate 'rho'
-    rho = np.arctan2(lines_squeeze[:,1]-lines_squeeze[:,3],-(lines_squeeze[:,0]-lines_squeeze[:,2]))*180.0/np.pi
+    # calculate 'slope'
+    slope = np.arctan2(lines_squeeze[:,1]-lines_squeeze[:,3],-(lines_squeeze[:,0]-lines_squeeze[:,2]))*180.0/np.pi
     
-7. With 'rho' values, I've filtered out some noisy lines which have unlikey rho value. In the first, I've tried to filter out only near-horizonta/vertical lines, however, I've experienced better output with narrowing down allowed 'rho' range into '25~45' and '-45~-25'. 
+
+
+** With 'slope' values, I've filtered out some noisy lines which have unlikey slope value. In the first, I've tried to filter out only near-horizonta/vertical lines, however, I've experienced better output with narrowing down allowed 'slope' range into '25~45' and '-45~-25'. 
  
-    ##### Step 7. Take only possible candidates w.r.t rho value
-    # -->  select lines with 25~45 and -45~-25 rho degree
-    rho_filter_mask = (np.abs(rho)<25) \
-                        | (np.abs(rho)>45)
+    ##### Step 7. Take only possible candidates w.r.t slope value
+    # -->  select lines with 25~45 and -45~-25 slope degree
+    slope_filter_mask = (np.abs(slope)<25) \
+                        | (np.abs(slope)>45)
     del_element=[]
-    for i in range(len(rho_filter_mask)):
-        if rho_filter_mask[i]:
+    for i in range(len(slope_filter_mask)):
+        if slope_filter_mask[i]:
             del_element.append(i)
     lines = np.delete(lines, del_element, axis=0)
     lines_squeeze = np.delete(lines_squeeze, del_element, axis=0)
-    rho = np.delete(rho, del_element, axis=0)
+    slope = np.delete(slope, del_element, axis=0)
  
 
-8. Divided lines into to groups, with positive/negative slopes
+** Divided lines into to groups, with positive/negative slopes
 
 
     ##### Step 8. Divide lines into positive/negative slope
-    rho_positive = []
-    rho_negative = []
+    slope_positive = []
+    slope_negative = []
     lines_positive = []
     lines_negative = []
-    for i in range(len(rho)):
-        if rho[i]>0:
-            rho_positive.append(rho[i])
+    for i in range(len(slope)):
+        if slope[i]>0:
+            slope_positive.append(slope[i])
             lines_positive.append(lines_squeeze[i])
         else:
-            rho_negative.append(rho[i])
+            slope_negative.append(slope[i])
             lines_negative.append(lines_squeeze[i])
     lines_positive = np.asarray(lines_positive)
     lines_negative = np.asarray(lines_negative)
-    rho_positive = np.asarray(rho_positive)
-    rho_negative = np.asarray(rho_negative)
+    slope_positive = np.asarray(slope_positive)
+    slope_negative = np.asarray(slope_negative)
 
 
-9. If the camera is installed on the right position, we can assume that lines with positive slope will be reside on the left-plane of image, and for negativie slope lines, on the right. With this filtering, I can remove lots of noisy lines in the 'challenge.mp4' 
+** If the camera is installed on the right position, we can assume that lines with positive slope will be reside on the left-plane of image, and for negativie slope lines, on the right. With this filtering, I can remove lots of noisy lines in the 'challenge.mp4' 
 
     ##### Step 9. Throw away positive angle lines in right-plane ,  negative angle in left-plane
     # filter out positive lines in the right half of image
@@ -125,7 +127,7 @@ The function 'draw_lane_lines()' consists of 10 functional steps, I'd like to de
     for i in range(len(lines_positive)):
         if((lines_positive[i][0]>(img_shape[1]/2)) | (lines_positive[i][2]>(img_shape[1]/2)) ):
             filter_index.append(i)
-    rho_positive = np.delete(rho_positive, filter_index, axis=0)
+    slope_positive = np.delete(slope_positive, filter_index, axis=0)
     lines_positive = np.delete(lines_positive, filter_index, axis=0)
   
     # filter out negative lines in the left half of image
@@ -133,7 +135,7 @@ The function 'draw_lane_lines()' consists of 10 functional steps, I'd like to de
     for i in range(len(lines_negative)):
         if ((lines_negative[i][0]<(img_shape[1]/2)) | (lines_negative[i][2]<(img_shape[1]/2)) ):
             filter_index.append(i)
-    rho_negative = np.delete(rho_negative, filter_index, axis=0)
+    slope_negative = np.delete(slope_negative, filter_index, axis=0)
     lines_negative = np.delete(lines_negative, filter_index, axis=0)
 
 Raw lines after this step is as below:  
@@ -142,7 +144,7 @@ Raw lines after this step is as below:
 
     
 
-10. To average line segments, I've used a simple regression function from numpy api, np.polyfit(), for each positive/negative slope lines. With each regressed line, I've calculated top/bottom points of each line. (just picked at the bottom of image, and at the y=320) 
+** To average line segments, I've used a simple regression function from numpy api, np.polyfit(), for each positive/negative slope lines. With each regressed line, I've calculated top/bottom points of each line. (just picked at the bottom of image, and at the y=320) 
 
 
     ##### Step 10. Find averaged-lines with a simple regression function, and Choose top&bottom points. 
