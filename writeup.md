@@ -183,16 +183,17 @@ Raw lines after this step is as below:
 ### 2. Identify potential shortcomings with your current pipeline
 
 
-One potential shortcoming would be what would happen when ... 
+** One potential shortcoming would be what would happen when the pipeline is applied to curved lanes. For now, I have no idea if there is any function to detect curved line. 
 
-Another shortcoming could be ...
+** Another shortcoming could be performance in night/rain/snow environment. Since I've filtered noisy lines with regard to slope and region, my pipeline is definitely weak to random noisy lines which reside on all over ROI region. 
+ I can find this problem in 'challenge.mp4' , where my pipeline shows bad performance when it meets bright area.
 
 
 ### 3. Suggest possible improvements to your pipeline
 
-A possible improvement would be to ...
+A possible improvement would be to apply contrast streatching to ROI area. Contrast streching could make image gradient bigger, and more adaptable tuning would be possible with bigger gradient image.
 
-Another potential improvement could be to ...
+Another potential improvement could be to use clustering and eliminating lines far from the center with regard to 'rho', before regressing lines. By repeatedly eliminating & clustering, I think that it can remove many of small noisy lanes.
 
 
 
