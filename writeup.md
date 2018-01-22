@@ -76,14 +76,14 @@ The function 'draw_lane_lines()' consists of 10 functional steps, I'd like to de
 
 ** I've calculated 'slope' for each line, so that I can handle by positive/negative slopes seperately. 
 
-    ##### Step 6. Calculate 'slope'(slope) of lines 
+    ##### Step 6. Calculate 'slope' of lines 
     lines_squeeze = np.squeeze(lines)
     # calculate 'slope'
     slope = np.arctan2(lines_squeeze[:,1]-lines_squeeze[:,3],-(lines_squeeze[:,0]-lines_squeeze[:,2]))*180.0/np.pi
     
 
 
-** With 'slope' values, I've filtered out some noisy lines which have unlikey slope value. In the first, I've tried to filter out only near-horizonta/vertical lines, however, I've experienced better output with narrowing down allowed 'slope' range into '25~45' and '-45~-25'. 
+** With 'slope' values, I've filtered out some noisy lines which have unlikey slope value. In the first, I've tried to filter out only near-horizonta/vertical lines, however, I've experienced better output with narrowing down allowed 'slope' range into '25 ~ 45' and '-45 ~ -25'. 
  
     ##### Step 7. Take only possible candidates w.r.t slope value
     # -->  select lines with 25~45 and -45~-25 slope degree
